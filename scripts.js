@@ -7,42 +7,38 @@ let euroToday = 0;
 let bitcoinToday = 0;
 const realToday = 1;
 
-function atualizarCotacoes() {
-  fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-USD")
-    .then((res) => res.json())
-    .then((data) => {
-      dolarToday = parseFloat(data.USDBRL.bid);
-      euroToday = parseFloat(data.EURBRL.bid);
-      bitcoinToday = parseFloat(data.BTCUSD.bid);
-    })
-    .catch((error) => {
-      console.error("Erro ao buscar cotações:", error);
-      alert("Erro ao carregar cotações. Verifique sua conexão.");
-    });
+const atualizarCotacoes = async () => {
+  try {
+    const response = await fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-USD");
+    const data = await response.json();
+    dolarToday = parseFloat(data.USDBRL.high);
+    euroToday = parseFloat(data.EURBRL.high);
+    bitcoinToday = parseFloat(data.BTCUSD.high);
+  } catch (error) {
+    console.error("Erro ao buscar cotações:", error);
+    alert("Erro ao carregar cotações. Verifique sua conexão.");
+  }
 }
 
 window.addEventListener("load", atualizarCotacoes);
 
 function convertValues() {
   const inputCurrencyValue = document.querySelector(".input-currency").value;
-const valorNumerico = Number(
-  inputCurrencyValue
-    .replace("R$", "")
-    .replace(/\s/g, "")
-    .replace(/\./g, "")
-    .replace(",", ".")
-    .trim()
-);
+  const valorNumerico = Number(
+    inputCurrencyValue
+      .replace("R$", "")
+      .replace(/\s/g, "")
+      .replace(/\./g, "")
+      .replace(",", ".")
+      .trim()
+  );
 
-  // Verifique se o valor é um número
   if (isNaN(valorNumerico)) {
     alert("Por favor, insira um valor numérico válido.");
     return;
   }
 
-  const correntyValueToConvert = document.querySelector(
-    ".currency-value-to-convert"
-  );
+  const correntyValueToConvert = document.querySelector(".currency-value-to-convert");
   const correntyValueToConvertd = document.querySelector(".currency-value");
 
   // valor de entrada formatado
@@ -62,9 +58,7 @@ const valorNumerico = Number(
       currency: "BRL",
     }).format(valorNumerico);
   } else if (currencySelectConvert.value === "bitcoin") {
-    // converte valor de BTC para Real para exibir o valor em BTC
-    const valorEmBitcoin = valorNumerico; // já está em BTC
-    correntyValueToConvert.innerHTML = `${valorEmBitcoin.toFixed(6)} BTC`;
+    correntyValueToConvert.innerHTML = `${valorNumerico.toFixed(6)} BTC`;
   }
 
   // converter para reais
@@ -73,6 +67,8 @@ const valorNumerico = Number(
     valorEmReal = valorNumerico * dolarToday;
   } else if (currencySelectConvert.value === "euro") {
     valorEmReal = valorNumerico * euroToday;
+  } else if (currencySelectConvert.value === "bitcoin") {
+    valorEmReal = valorNumerico * bitcoinToday;
   } else {
     valorEmReal = valorNumerico * realToday;
   }
@@ -88,7 +84,7 @@ const valorNumerico = Number(
   } else if (currencySelect.value === "real") {
     valorConvertido = valorEmReal / realToday;
   } else if (currencySelect.value === "bitcoin") {
-    valorConvertido = valorEmBitcoin; // Se a conversão for para Bitcoin
+    valorConvertido = valorEmBitcoin;
   }
 
   // valor de saída formatado
@@ -108,7 +104,7 @@ const valorNumerico = Number(
       currency: "BRL",
     }).format(valorConvertido);
   } else if (currencySelect.value === "bitcoin") {
-    correntyValueToConvertd.innerHTML = `${valorConvertido.toFixed(8)} BTC`; // Exibir Bitcoin
+    correntyValueToConvertd.innerHTML = `${valorConvertido.toFixed(8)} BTC`;
   }
 }
 
@@ -150,9 +146,10 @@ function changeCurrency1() {
     currencyName1.innerHTML = "Bitcoin";
     currencyImage1.src = "./assets/img/bitcoin 1.png";
   }
+
+  convertValues(); // Atualiza a conversão ao trocar a moeda de origem
 }
 
 currencySelect.addEventListener("change", changeCurrency);
 currencySelectConvert.addEventListener("change", changeCurrency1);
 convertButton.addEventListener("click", convertValues);
-
